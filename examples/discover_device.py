@@ -9,8 +9,7 @@ import logging
 from bleak import BleakScanner
 
 logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 )
 logger = logging.getLogger(__name__)
 
@@ -30,11 +29,13 @@ async def discover_flow_devices(timeout: float = 10.0) -> list:
     flow_devices = []
     for device in devices:
         if device.name and "FLOW" in device.name.upper():
-            flow_devices.append({
-                "name": device.name,
-                "address": device.address,
-                "rssi": device.rssi if hasattr(device, 'rssi') else None
-            })
+            flow_devices.append(
+                {
+                    "name": device.name,
+                    "address": device.address,
+                    "rssi": device.rssi if hasattr(device, "rssi") else None,
+                }
+            )
 
     return flow_devices
 
@@ -56,7 +57,7 @@ async def main():
     else:
         print(f"✅ Found {len(devices)} Flow device(s):\n")
         for i, device in enumerate(devices, 1):
-            rssi_str = f" (RSSI: {device['rssi']} dBm)" if device['rssi'] else ""
+            rssi_str = f" (RSSI: {device['rssi']} dBm)" if device["rssi"] else ""
             print(f"{i}. {device['name']}")
             print(f"   MAC Address: {device['address']}{rssi_str}")
             print()

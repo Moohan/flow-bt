@@ -11,6 +11,7 @@ from flow_bt.client import Flow2Client
 logging.basicConfig(level=logging.ERROR)
 logger = logging.getLogger(__name__)
 
+
 async def discover():
     """Discover Flow devices."""
     print("Searching for Flow devices...")
@@ -24,6 +25,7 @@ async def discover():
     print(f"Found {len(flow_devices)} Flow device(s):")
     for i, device in enumerate(flow_devices, 1):
         print(f"{i}. {device.name} ({device.address})")
+
 
 async def read_live(address: str, duration: int):
     """Read live data for a duration."""
@@ -42,6 +44,7 @@ async def read_live(address: str, duration: int):
         pass
     finally:
         await client.disconnect()
+
 
 def main():
     parser = argparse.ArgumentParser(description="Flow BT CLI tool")
@@ -65,6 +68,7 @@ def main():
         asyncio.run(read_live(args.address, args.duration))
     else:
         parser.print_help()
+
 
 if __name__ == "__main__":
     main()

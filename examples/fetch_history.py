@@ -12,8 +12,7 @@ from flow_bt.protocol import decode_history_timestamp
 
 # Configure logging
 logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 )
 
 
@@ -25,11 +24,15 @@ def on_data(msg_type: str, payload) -> None:
         # Try to decode the first timestamp
         timestamp = decode_history_timestamp(payload)
         if timestamp:
-            print(f"[HISTORY] Packet Size: {len(payload)} bytes | "
-                  f"First timestamp: {timestamp}")
+            print(
+                f"[HISTORY] Packet Size: {len(payload)} bytes | "
+                f"First timestamp: {timestamp}"
+            )
         else:
-            print(f"[HISTORY] Packet Size: {len(payload)} bytes | "
-                  f"Header: {payload[:10].hex()}...")
+            print(
+                f"[HISTORY] Packet Size: {len(payload)} bytes | "
+                f"Header: {payload[:10].hex()}..."
+            )
 
 
 async def main():

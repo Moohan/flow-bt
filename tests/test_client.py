@@ -12,11 +12,13 @@ from flow_bt.exceptions import Flow2ConnectionError, NotConnectedError
 def client():
     return Flow2Client("CC:BB:AA:EE:22:11")
 
+
 def test_client_init(client):
     """Test client initialization."""
     assert client.address == "CC:BB:AA:EE:22:11"
     assert client.client is None
     assert client.is_streaming is False
+
 
 @pytest.mark.asyncio
 async def test_read_battery_not_connected(client):
@@ -24,17 +26,20 @@ async def test_read_battery_not_connected(client):
     with pytest.raises(NotConnectedError):
         await client.read_battery()
 
+
 @pytest.mark.asyncio
 async def test_start_stream_not_connected(client):
     """Test start_stream raises NotConnectedError when not connected."""
     with pytest.raises(NotConnectedError):
         await client.start_stream(lambda m, p: None)
 
+
 @pytest.mark.asyncio
 async def test_fetch_history_not_connected(client):
     """Test fetch_history raises NotConnectedError when not connected."""
     with pytest.raises(NotConnectedError):
         await client.fetch_history()
+
 
 @pytest.mark.asyncio
 async def test_connect_failure(client):

@@ -19,7 +19,7 @@ def decode_live_pm_value(data: bytes) -> Optional[float]:
 
     try:
         # Float at offset 8-11 (little-endian)
-        return struct.unpack('<f', data[8:12])[0]
+        return struct.unpack("<f", data[8:12])[0]
     except struct.error:
         return None
 
@@ -38,7 +38,7 @@ def decode_history_timestamp(data: bytes, offset: int = 0) -> Optional[datetime]
         return None
 
     try:
-        timestamp = struct.unpack('<I', data[offset:offset + 4])[0]
+        timestamp = struct.unpack("<I", data[offset : offset + 4])[0]
         return datetime.fromtimestamp(timestamp)
     except (struct.error, ValueError, OSError):
         return None

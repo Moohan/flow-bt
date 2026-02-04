@@ -13,7 +13,7 @@ class TestDecodeLivePMValue:
         """Test decoding a normal PM2.5 value."""
         # Create a 20-byte packet with PM2.5 = 12.5 at offset 8-11
         packet = bytearray(20)
-        struct.pack_into('<f', packet, 8, 12.5)
+        struct.pack_into("<f", packet, 8, 12.5)
 
         result = decode_live_pm_value(bytes(packet))
         assert result is not None
@@ -22,7 +22,7 @@ class TestDecodeLivePMValue:
     def test_valid_pm_value_zero(self):
         """Test decoding zero PM2.5 value (clean air)."""
         packet = bytearray(20)
-        struct.pack_into('<f', packet, 8, 0.0)
+        struct.pack_into("<f", packet, 8, 0.0)
 
         result = decode_live_pm_value(bytes(packet))
         assert result is not None
@@ -31,7 +31,7 @@ class TestDecodeLivePMValue:
     def test_valid_pm_value_high(self):
         """Test decoding high PM2.5 value (severe pollution)."""
         packet = bytearray(20)
-        struct.pack_into('<f', packet, 8, 350.7)
+        struct.pack_into("<f", packet, 8, 350.7)
 
         result = decode_live_pm_value(bytes(packet))
         assert result is not None
@@ -40,7 +40,7 @@ class TestDecodeLivePMValue:
     def test_valid_pm_value_low_precision(self):
         """Test decoding low precision PM2.5 value."""
         packet = bytearray(20)
-        struct.pack_into('<f', packet, 8, 1.2)
+        struct.pack_into("<f", packet, 8, 1.2)
 
         result = decode_live_pm_value(bytes(packet))
         assert result is not None
@@ -50,8 +50,8 @@ class TestDecodeLivePMValue:
         """Test that decoding ignores bytes before offset 8."""
         packet = bytearray(20)
         # Fill first 8 bytes with random data
-        packet[0:8] = b'\xFF\xAA\x55\x00\x11\x22\x33\x44'
-        struct.pack_into('<f', packet, 8, 25.8)
+        packet[0:8] = b"\xff\xaa\x55\x00\x11\x22\x33\x44"
+        struct.pack_into("<f", packet, 8, 25.8)
 
         result = decode_live_pm_value(bytes(packet))
         assert result is not None
@@ -59,25 +59,25 @@ class TestDecodeLivePMValue:
 
     def test_invalid_packet_too_short(self):
         """Test that packets shorter than 20 bytes return None."""
-        packet = b'\x00' * 19  # 19 bytes
+        packet = b"\x00" * 19  # 19 bytes
         result = decode_live_pm_value(packet)
         assert result is None
 
     def test_invalid_packet_much_too_short(self):
         """Test that very short packets return None."""
-        packet = b'\x00' * 10
+        packet = b"\x00" * 10
         result = decode_live_pm_value(packet)
         assert result is None
 
     def test_invalid_packet_too_long(self):
         """Test that packets longer than 20 bytes return None."""
-        packet = b'\x00' * 21
+        packet = b"\x00" * 21
         result = decode_live_pm_value(packet)
         assert result is None
 
     def test_invalid_packet_empty(self):
         """Test that empty packets return None."""
-        packet = b''
+        packet = b""
         result = decode_live_pm_value(packet)
         assert result is None
 
@@ -85,9 +85,9 @@ class TestDecodeLivePMValue:
         """Test with a realistic example from actual device data."""
         # Based on observed packet: PM2.5 = 35.8 µg/m³
         packet = bytearray(20)
-        packet[0:8] = b'\x01\x00\x00\x00\x00\x00\x00\x00'  # Header/padding
-        struct.pack_into('<f', packet, 8, 35.8)
-        packet[12:20] = b'\x00' * 8  # Trailing data
+        packet[0:8] = b"\x01\x00\x00\x00\x00\x00\x00\x00"  # Header/padding
+        struct.pack_into("<f", packet, 8, 35.8)
+        packet[12:20] = b"\x00" * 8  # Trailing data
 
         result = decode_live_pm_value(bytes(packet))
         assert result is not None
@@ -107,7 +107,7 @@ class TestDecodeLivePMValue:
         # handler for safety.
         packet = bytearray(20)
         # Even "malformed" bytes will decode to some float value
-        packet[8:12] = b'\xFF\xFF\xFF\xFF'  # Will decode to NaN or some value
+        packet[8:12] = b"\xff\xff\xff\xff"  # Will decode to NaN or some value
 
         # This will still return a value (possibly NaN or infinity)
         result = decode_live_pm_value(bytes(packet))
@@ -124,7 +124,7 @@ class TestDecodeHistoryTimestamp:
         """Test decoding timestamp at default offset (0)."""
         # Unix timestamp: 1609459200 = 2021-01-01 00:00:00 UTC
         timestamp = 1609459200
-        packet = struct.pack('<I', timestamp) + b'\x00' * 10
+        packet = struct.pack("<I", timestamp) + b"\x00" * 10
 
         result = decode_history_timestamp(packet)
         assert result is not None
@@ -133,7 +133,7 @@ class TestDecodeHistoryTimestamp:
     def test_valid_timestamp_custom_offset(self):
         """Test decoding timestamp at custom offset."""
         timestamp = 1609459200
-        packet = b'\xFF' * 4 + struct.pack('<I', timestamp) + b'\x00' * 6
+        packet = b"\xff" * 4 + struct.pack("<I", timestamp) + b"\x00" * 6
 
         result = decode_history_timestamp(packet, offset=4)
         assert result is not None
@@ -142,7 +142,7 @@ class TestDecodeHistoryTimestamp:
     def test_valid_timestamp_offset_8(self):
         """Test decoding timestamp at offset 8."""
         timestamp = 1735689600  # 2025-01-01 00:00:00 UTC
-        packet = b'\x00' * 8 + struct.pack('<I', timestamp) + b'\x00' * 10
+        packet = b"\x00" * 8 + struct.pack("<I", timestamp) + b"\x00" * 10
 
         result = decode_history_timestamp(packet, offset=8)
         assert result is not None
@@ -151,7 +151,7 @@ class TestDecodeHistoryTimestamp:
     def test_valid_timestamp_epoch(self):
         """Test decoding Unix epoch (0)."""
         timestamp = 0
-        packet = struct.pack('<I', timestamp) + b'\x00' * 10
+        packet = struct.pack("<I", timestamp) + b"\x00" * 10
 
         result = decode_history_timestamp(packet)
         assert result is not None
@@ -161,7 +161,7 @@ class TestDecodeHistoryTimestamp:
         """Test decoding recent timestamp."""
         # Recent timestamp: 2024-01-15 12:30:00 UTC
         timestamp = 1705324200
-        packet = struct.pack('<I', timestamp) + b'\x00' * 10
+        packet = struct.pack("<I", timestamp) + b"\x00" * 10
 
         result = decode_history_timestamp(packet)
         assert result is not None
@@ -169,32 +169,32 @@ class TestDecodeHistoryTimestamp:
 
     def test_invalid_packet_too_short_default_offset(self):
         """Test that packet too short for timestamp at offset 0 returns None."""
-        packet = b'\x00\x01\x02'  # Only 3 bytes
+        packet = b"\x00\x01\x02"  # Only 3 bytes
         result = decode_history_timestamp(packet)
         assert result is None
 
     def test_invalid_packet_too_short_custom_offset(self):
         """Test that packet too short for timestamp at custom offset returns None."""
-        packet = b'\x00' * 6  # 6 bytes, but offset 4 needs 4 more
+        packet = b"\x00" * 6  # 6 bytes, but offset 4 needs 4 more
         result = decode_history_timestamp(packet, offset=4)
         assert result is None
 
     def test_invalid_offset_beyond_bounds(self):
         """Test that offset beyond packet bounds returns None."""
-        packet = b'\x00' * 10
+        packet = b"\x00" * 10
         result = decode_history_timestamp(packet, offset=20)
         assert result is None
 
     def test_invalid_offset_exact_bounds(self):
         """Test that offset at exact packet boundary returns None."""
-        packet = b'\x00' * 10
+        packet = b"\x00" * 10
         # Offset 10 means we need bytes 10-13, but packet only goes to 9
         result = decode_history_timestamp(packet, offset=10)
         assert result is None
 
     def test_invalid_offset_one_byte_short(self):
         """Test packet that's one byte too short for offset."""
-        packet = b'\x00' * 7
+        packet = b"\x00" * 7
         # Offset 4 needs bytes 4-7, but we only have 0-6
         result = decode_history_timestamp(packet, offset=4)
         assert result is None
@@ -203,7 +203,7 @@ class TestDecodeHistoryTimestamp:
         """Test decoding from maximum viable offset in typical 244-byte packet."""
         timestamp = 1700000000
         # Create packet with timestamp at offset 240 (last 4 bytes of 244-byte packet)
-        packet = b'\x00' * 240 + struct.pack('<I', timestamp)
+        packet = b"\x00" * 240 + struct.pack("<I", timestamp)
 
         result = decode_history_timestamp(packet, offset=240)
         assert result is not None
@@ -216,7 +216,7 @@ class TestDecodeHistoryTimestamp:
         (0xFFFFFFFF = 4294967295). This is a valid timestamp, not an error case.
         """
         # Max 32-bit unsigned int: Feb 7, 2106, 06:28:15 UTC
-        packet = struct.pack('<I', 0xFFFFFFFF) + b'\x00' * 10
+        packet = struct.pack("<I", 0xFFFFFFFF) + b"\x00" * 10
 
         result = decode_history_timestamp(packet)
         # Should successfully decode to a valid datetime
@@ -230,11 +230,11 @@ class TestDecodeHistoryTimestamp:
         ts3 = 1672531200  # 2023-01-01
 
         packet = (
-            struct.pack('<I', ts1) +
-            b'\xFF' * 4 +
-            struct.pack('<I', ts2) +
-            b'\xAA' * 4 +
-            struct.pack('<I', ts3)
+            struct.pack("<I", ts1)
+            + b"\xff" * 4
+            + struct.pack("<I", ts2)
+            + b"\xaa" * 4
+            + struct.pack("<I", ts3)
         )
 
         result1 = decode_history_timestamp(packet, offset=0)
@@ -248,7 +248,7 @@ class TestDecodeHistoryTimestamp:
     def test_edge_case_minimum_packet_size(self):
         """Test with exactly 4 bytes (minimum valid packet)."""
         timestamp = 1609459200
-        packet = struct.pack('<I', timestamp)  # Exactly 4 bytes
+        packet = struct.pack("<I", timestamp)  # Exactly 4 bytes
 
         result = decode_history_timestamp(packet)
         assert result is not None
@@ -257,7 +257,7 @@ class TestDecodeHistoryTimestamp:
     def test_edge_case_offset_at_end_minus_four(self):
         """Test offset at exactly packet_size - 4."""
         timestamp = 1700000000
-        packet = b'\x00' * 10 + struct.pack('<I', timestamp)  # 14 bytes total
+        packet = b"\x00" * 10 + struct.pack("<I", timestamp)  # 14 bytes total
 
         result = decode_history_timestamp(packet, offset=10)  # Offset at byte 10-13
         assert result is not None
