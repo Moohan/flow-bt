@@ -1,9 +1,12 @@
 """Unit tests for Flow2Client."""
 
-import pytest
 from unittest.mock import AsyncMock, patch
+
+import pytest
+
 from flow_bt.client import Flow2Client
-from flow_bt.exceptions import ConnectionError, NotConnectedError
+from flow_bt.exceptions import Flow2ConnectionError, NotConnectedError
+
 
 @pytest.fixture
 def client():
@@ -41,5 +44,5 @@ async def test_connect_failure(client):
         mock_bleak.return_value = mock_instance
         mock_instance.connect.side_effect = Exception("Bluetooth down")
 
-        with pytest.raises(ConnectionError, match="Could not connect"):
+        with pytest.raises(Flow2ConnectionError, match="Could not connect"):
             await client.connect()

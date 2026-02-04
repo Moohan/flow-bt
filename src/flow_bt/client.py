@@ -1,27 +1,28 @@
 """Flow 2 BLE client implementation."""
 
 import asyncio
+import contextlib
 import logging
 from typing import Callable, Optional
 
 from bleak import BleakClient
 
 from .constants import (
-    UUID_AUTH,
-    UUID_COMMAND,
-    UUID_DATA,
-    UUID_BATTERY,
     AUTH_KEY,
     CMD_ACTIVATE,
     CMD_FETCH_HISTORY,
     LIVE_DATA_PACKET_SIZE,
+    UUID_AUTH,
+    UUID_BATTERY,
+    UUID_COMMAND,
+    UUID_DATA,
 )
-from .protocol import decode_live_pm_value
 from .exceptions import (
-    ConnectionError,
     AuthenticationError,
+    Flow2ConnectionError,
     NotConnectedError,
 )
+from .protocol import decode_live_pm_value
 
 logger = logging.getLogger(__name__)
 
@@ -79,7 +80,9 @@ class Flow2Client:
                 await self.client.disconnect()
             if "Authentication" in str(e):
                 raise AuthenticationError(f"Authentication failed: {e}") from e
-            raise ConnectionError(f"Could not connect to {self.address}: {e}") from e
+            raise Flow2ConnectionError(
+                f"Could not connect to {self.address}: {e}"
+            ) from e
 
     async def disconnect(self) -> None:
         """Stop streaming and disconnect from the device."""
@@ -148,10 +151,8 @@ class Flow2Client:
         self.is_streaming = False
         if self._keep_alive_task:
             self._keep_alive_task.cancel()
-            try:
+            with contextlib.suppress(asyncio.CancelledError):
                 await self._keep_alive_task
-            except asyncio.CancelledError:
-                pass
             self._keep_alive_task = None
 
         if self.client and self.client.is_connected:
@@ -175,7 +176,9 @@ class Flow2Client:
             raise NotConnectedError("Client not connected.")
 
         logger.info("Sending FETCH HISTORY command...")
-        await self.client.write_gatt_char(UUID_COMMAND, CMD_FETCH_HISTORY, response=True)
+        await self.client.write_gatt_char(
+            UUID_COMMAND, CMD_FETCH_HISTORY, response=True
+        )
 
     def _notification_handler(self, sender: int, data: bytearray) -> None:
         """Handle incoming data packets.

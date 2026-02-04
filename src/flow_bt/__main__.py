@@ -1,10 +1,11 @@
 """CLI entry point for Flow BT."""
 
-import asyncio
 import argparse
-import sys
+import asyncio
 import logging
+
 from bleak import BleakScanner
+
 from flow_bt.client import Flow2Client
 
 logging.basicConfig(level=logging.ERROR)
@@ -52,7 +53,9 @@ def main():
     # Read command
     read_parser = subparsers.add_parser("read", help="Read live data from a device")
     read_parser.add_argument("address", help="MAC address or UUID of the device")
-    read_parser.add_argument("--duration", type=int, default=30, help="Duration to stream data in seconds")
+    read_parser.add_argument(
+        "--duration", type=int, default=30, help="Duration to stream data in seconds"
+    )
 
     args = parser.parse_args()
 

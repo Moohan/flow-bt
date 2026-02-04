@@ -2,8 +2,8 @@
 
 import struct
 from datetime import datetime
-import pytest
-from flow_bt.protocol import decode_live_pm_value, decode_history_timestamp
+
+from flow_bt.protocol import decode_history_timestamp, decode_live_pm_value
 
 
 class TestDecodeLivePMValue:
@@ -102,17 +102,19 @@ class TestDecodeLivePMValue:
         documents that the code handles it correctly if it occurs.
         """
         # This is a 20-byte packet, so it passes the length check
-        # struct.unpack with '<f' format will successfully unpack any 4 bytes
-        # So in reality this won't trigger struct.error, but we have the handler for safety
+        # struct.unpack with '<f' format will successfully unpack any 4 bytes.
+        # So in reality this won't trigger struct.error, but we have the
+        # handler for safety.
         packet = bytearray(20)
         # Even "malformed" bytes will decode to some float value
         packet[8:12] = b'\xFF\xFF\xFF\xFF'  # Will decode to NaN or some value
 
         # This will still return a value (possibly NaN or infinity)
         result = decode_live_pm_value(bytes(packet))
-        # We accept any result here since struct doesn't actually raise for valid 4-byte inputs
-        # The test documents the code path exists even if it's rarely triggered
-        assert result is not None or result is None  # Either outcome is acceptable
+        # We accept any result here since struct doesn't actually raise for
+        # valid 4-byte inputs. The test documents the code path exists even
+        # if it's rarely triggered.
+        assert result is not None or result is None
 
 
 class TestDecodeHistoryTimestamp:
@@ -210,8 +212,8 @@ class TestDecodeHistoryTimestamp:
     def test_valid_timestamp_far_future(self):
         """Test that large but valid timestamp values decode correctly.
 
-        Python's datetime can handle timestamps up to the year ~2106 (0xFFFFFFFF = 4294967295).
-        This is a valid timestamp, not an error case.
+        Python's datetime can handle timestamps up to the year ~2106
+        (0xFFFFFFFF = 4294967295). This is a valid timestamp, not an error case.
         """
         # Max 32-bit unsigned int: Feb 7, 2106, 06:28:15 UTC
         packet = struct.pack('<I', 0xFFFFFFFF) + b'\x00' * 10

@@ -4,7 +4,7 @@ class FlowBTError(Exception):
     """Base exception for Flow BT."""
     pass
 
-class ConnectionError(FlowBTError):
+class Flow2ConnectionError(FlowBTError):
     """Raised when connection to the device fails."""
     pass
 
