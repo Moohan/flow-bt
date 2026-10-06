@@ -1,8 +1,5 @@
 """Protocol constants for Flow 2 BLE communication."""
 
-# Service UUID
-SERVICE_FLOW = "30390100-4e55-4c10-9dce-b654f35fdf99"
-
 # Characteristic UUIDs
 UUID_AUTH = "30390201-4E55-4C10-9DCE-B654F35FDF99"
 UUID_COMMAND = "30390101-4E55-4C10-9DCE-B654F35FDF99"
@@ -18,4 +15,3 @@ CMD_FETCH_HISTORY = bytes.fromhex("010500")
 
 # Packet sizes
 LIVE_DATA_PACKET_SIZE = 20
-HISTORY_DATA_PACKET_SIZE = 244  # Typical size
