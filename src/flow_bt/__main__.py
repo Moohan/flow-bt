@@ -3,16 +3,17 @@
 import argparse
 import asyncio
 import logging
+import sys
+from typing import NoReturn, Union
 
 from bleak import BleakScanner
 
 from flow_bt.client import Flow2Client
 
-logging.basicConfig(level=logging.ERROR)
 logger = logging.getLogger(__name__)
 
 
-async def discover():
+async def discover() -> None:
     """Discover Flow devices."""
     print("Searching for Flow devices...")
     devices = await BleakScanner.discover()
@@ -27,11 +28,11 @@ async def discover():
         print(f"{i}. {device.name} ({device.address})")
 
 
-async def read_live(address: str, duration: int):
+async def read_live(address: str, duration: int) -> None:
     """Read live data for a duration."""
     client = Flow2Client(address)
 
-    def on_data(msg_type, payload):
+    def on_data(msg_type: str, payload: Union[float, bytes]) -> None:
         if msg_type == "live":
             print(f"PM2.5: {payload:.2f} µg/m³")
 
@@ -41,12 +42,17 @@ async def read_live(address: str, duration: int):
         print(f"Streaming live data for {duration} seconds... (Ctrl+C to stop)")
         await asyncio.sleep(duration)
     except KeyboardInterrupt:
-        pass
+        # Gracefully handle interruption
+        print("\nStreaming interrupted by user.")
     finally:
         await client.disconnect()
 
 
-def main():
+def main() -> None:
+    """Main CLI entry point."""
+    # Configure logging at runtime, not import time
+    logging.basicConfig(level=logging.ERROR)
+
     parser = argparse.ArgumentParser(description="Flow BT CLI tool")
     subparsers = parser.add_subparsers(dest="command", help="Commands")
 

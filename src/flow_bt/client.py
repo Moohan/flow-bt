@@ -1,9 +1,8 @@
 """Flow 2 BLE client implementation."""
 
 import asyncio
-import contextlib
 import logging
-from typing import Callable, Optional
+from typing import Callable, Optional, Union
 
 from bleak import BleakClient
 
@@ -26,6 +25,9 @@ from .protocol import decode_live_pm_value
 
 logger = logging.getLogger(__name__)
 
+# Type aliases for data callback
+DataCallback = Callable[[str, Union[float, bytes, None]], None]
+
 
 class Flow2Client:
     """Client for interacting with Flow 2 air quality monitors via BLE.
@@ -34,7 +36,7 @@ class Flow2Client:
     and historical data retrieval from Flow 2 devices.
 
     Example:
-        >>> async def on_data(msg_type: str, payload):
+        >>> async def on_data(msg_type: str, payload: Union[float, bytes]) -> None:
         ...     if msg_type == "live":
         ...         print(f"PM2.5: {payload:.2f}")
         ...
@@ -45,7 +47,7 @@ class Flow2Client:
         >>> await client.disconnect()
     """
 
-    def __init__(self, address: str):
+    def __init__(self, address: str) -> None:
         """Initialize the Flow2 client.
 
         Args:
@@ -54,14 +56,15 @@ class Flow2Client:
         self.address = address
         self.client: Optional[BleakClient] = None
         self.is_streaming = False
-        self._keep_alive_task: Optional[asyncio.Task] = None
-        self._data_callback: Optional[Callable[[str, any], None]] = None
+        self._keep_alive_task: Optional[asyncio.Task[None]] = None
+        self._data_callback: Optional[DataCallback] = None
 
     async def connect(self) -> None:
         """Connect to the device and perform authentication.
 
         Raises:
-            BleakError: If connection or authentication fails
+            Flow2ConnectionError: If connection fails
+            AuthenticationError: If authentication fails
         """
         logger.info(f"Connecting to {self.address}...")
         try:
@@ -115,7 +118,7 @@ class Flow2Client:
             logger.error(f"Could not read battery: {e}")
             return None
 
-    async def start_stream(self, callback: Callable[[str, any], None]) -> None:
+    async def start_stream(self, callback: DataCallback) -> None:
         """Start data streaming and keep-alive loop.
 
         Args:
@@ -151,14 +154,18 @@ class Flow2Client:
         self.is_streaming = False
         if self._keep_alive_task:
             self._keep_alive_task.cancel()
-            with contextlib.suppress(asyncio.CancelledError):
+            try:
                 await self._keep_alive_task
+            except asyncio.CancelledError:
+                # Task was explicitly cancelled above; this exception is expected
+                logger.debug("Keep-alive task was cancelled as expected")
             self._keep_alive_task = None
 
         if self.client and self.client.is_connected:
             try:
                 await self.client.stop_notify(UUID_DATA)
             except Exception as e:
+                # Cleanup may fail if connection broken; intentional suppression
                 logger.warning(f"Error stopping notifications: {e}")
 
         logger.info("Streaming stopped.")
@@ -209,7 +216,8 @@ class Flow2Client:
                     )
                 await asyncio.sleep(5)
         except asyncio.CancelledError:
-            pass
+            # Loop is cancelled when streaming stops; this exception is expected
+            logger.debug("Keep-alive loop was cancelled as expected")
         except Exception as e:
             logger.error(f"Keep-alive error: {e}")
             self.is_streaming = False
